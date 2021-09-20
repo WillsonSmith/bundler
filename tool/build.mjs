@@ -23,6 +23,7 @@ const debouncedEvent = debounce((eventType, filename) => {
         } else {
           /** Don't need to do this for transforms
            * Can manually handle transforms
+           * this won't work after first build, it needs to check src.includes(filename) above
            */
           if (Array.isArray(src)) {
             /** read files from array
