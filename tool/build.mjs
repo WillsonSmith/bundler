@@ -18,11 +18,11 @@ const debouncedEvent = debounce((eventType, filename) => {
           readFile(src, (err, data) => {
             transpiler(src, data.toString('utf8'), `${dist}/${dest}`);
           });
+        } else {
+          copyFile(src, `${dist}/${dest}`, (error) => {
+            if (error) throw error;
+          });
         }
-
-        copyFile(src, `${dist}/${dest}`, (error) => {
-          if (error) throw error;
-        });
       }
     }
   });
