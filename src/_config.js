@@ -19,6 +19,7 @@ async function useRollup(file, _, dest) {
 export const transforms = [
   ['index.js'],
   ['bundle.js', 'bundle.es.js', useRollup],
+  [['index.js', 'bundle.js'], 'concat.js'],
 ];
 
 export const output = '../dist/scripts';
