@@ -1,15 +1,15 @@
 import { rollup } from 'rollup';
 
-function useRollup(file, _, dest) {
+async function useRollup(file, _, dest) {
   try {
-    rollup({
+    const bundle = await rollup({
       input: file,
-    }).then((bundle) => {
-      bundle.write({
-        format: 'es',
-        input: file,
-        output: { file: dest },
-      });
+    });
+
+    bundle.write({
+      format: 'es',
+      input: file,
+      output: { file: dest },
     });
   } catch (error) {
     console.error(error);
