@@ -6,7 +6,6 @@ function useRollup(file, _, dest) {
       input: file,
     }).then((bundle) => {
       bundle.write({
-        // format: 'esModule',
         format: 'es',
         input: file,
         output: { file: dest },
@@ -17,6 +16,9 @@ function useRollup(file, _, dest) {
   }
 }
 
-export const copies = [['index.js'], ['bundle.js', 'bundle.es.js', useRollup]];
+export const transforms = [
+  ['index.js'],
+  ['bundle.js', 'bundle.es.js', useRollup],
+];
 
-export const dist = '../dist/scripts';
+export const output = '../dist/scripts';

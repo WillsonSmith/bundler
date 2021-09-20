@@ -8,18 +8,18 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const debouncedEvent = debounce((eventType, filename) => {
-  import('../src/_config.js').then(({ dist = '../dist', copies }) => {
+  import('../src/_config.js').then(({ output = '../dist', transforms }) => {
     chdir(`${__dirname}/../src`);
-    for (const copy of copies) {
-      const [src, dest = src, transpiler] = copy;
+    for (const transform of transforms) {
+      const [src, dest = src, transpiler] = transform;
 
       if (!filename || filename === src) {
         if (transpiler) {
           readFile(src, (err, data) => {
-            transpiler(src, data.toString('utf8'), `${dist}/${dest}`);
+            transpiler(src, data.toString('utf8'), `${output}/${dest}`);
           });
         } else {
-          copyFile(src, `${dist}/${dest}`, (error) => {
+          copyFile(src, `${output}/${dest}`, (error) => {
             if (error) throw error;
           });
         }
