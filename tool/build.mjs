@@ -1,4 +1,4 @@
-import { copyFile, readFile, watch, writeFile } from 'fs';
+import { copyFile, readFile, watch } from 'fs';
 import { chdir } from 'process';
 import debounce from 'lodash-es/debounce.js';
 
