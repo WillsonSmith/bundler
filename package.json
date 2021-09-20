@@ -1,0 +1,17 @@
+{
+  "name": "tinybuilder",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "node ./tool/build.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "lodash-es": "^4.17.21",
+    "rollup": "^2.56.3"
+  }
+}
