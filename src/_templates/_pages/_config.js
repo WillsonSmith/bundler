@@ -1,12 +1,4 @@
-import { writeFile } from 'fs';
-import Handlebars from 'handlebars';
-
-function compileTemplate(file, string, destination) {
-  const template = Handlebars.compile(string);
-  const compiled = template(template);
-  writeFile(destination, compiled, (err) => {});
-  // return compiled;
-}
+import { compileTemplate } from '../../_build/hbs.mjs';
 
 export const transforms = [['_template.hbs', 'template.html', compileTemplate]];
 

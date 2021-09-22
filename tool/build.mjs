@@ -12,7 +12,6 @@ import { join } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const debouncedEvent = debounce((eventType, filename) => {
-  chdir(`${__dirname}/../`);
   const curdir = cwd();
   const configs = recursive(`${curdir}/src`).filter((file) => {
     return file.includes('_config.js');
@@ -36,14 +35,14 @@ const debouncedEvent = debounce((eventType, filename) => {
         const [src, dest = src, transpiler] = transform;
         const inputFile = `${inputdir}/${src}`;
         const fileName = `${curdir}/${filename}`;
+
         if (inputFile === fileName) {
           const outputFile = `${destination}${dest}`;
           const outputDir = dirname(outputFile);
 
           mkdir(outputDir, { recursive: true }, (err) => {});
-          console.log('transpiling');
+          console.log(`transpiling ${inputFile} to ${outputFile}`);
           if (transpiler) {
-            console.log(outputFile);
             readFile(inputFile, (error, data) => {
               transpiler(inputFile, data.toString('utf8'), outputFile);
             });
@@ -56,6 +55,7 @@ const debouncedEvent = debounce((eventType, filename) => {
   }
 }, 20);
 
+chdir(`${__dirname}/../`);
 debouncedEvent();
 chokidar.watch('./src').on('all', debouncedEvent);
 
