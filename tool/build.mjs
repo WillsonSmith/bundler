@@ -14,10 +14,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const debouncedEvent = debounce((eventType, filename) => {
   chdir(`${__dirname}/../`);
   const curdir = cwd();
-  // find all configs
-  // save directory of config to Map
-  // check if file v directory is in Map
-  // if so, run run build
   const configs = recursive(`${curdir}/src`).filter((file) => {
     return file.includes('_config.js');
   });
