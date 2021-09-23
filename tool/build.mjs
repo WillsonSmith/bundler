@@ -41,13 +41,6 @@ async function build(eventType, filename) {
   }
 }
 
-const debouncedBuild = debounce(build, 20);
-
-chdir(`${__dirname}/../`);
-build();
-
-chokidar.watch('./src').on('all', debouncedBuild);
-
 function* findFilesRecursively(name, dir) {
   for (const file of readdirSync(dir)) {
     const path = join(dir, file);
@@ -73,3 +66,8 @@ function configPathDetails(path) {
   if (outputdir.length > 0) outputdir = `${outputdir}/`;
   return { name, inputdir, outputdir };
 }
+
+chdir(`${__dirname}/../`);
+
+build();
+chokidar.watch('./src').on('all', debounce(build, 20));
