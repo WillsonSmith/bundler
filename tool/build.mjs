@@ -12,11 +12,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 async function build(eventType, filename) {
   const curdir = cwd();
   const savedFile = `${curdir}/${filename}`;
-
-  for await (const config of findFilesRecursively(
-    '_config.js',
-    `${curdir}/src`
-  )) {
+  const configs = findFilesRecursively('_config.js', `${curdir}/src`);
+  for await (const config of configs) {
     const { inputdir, outputdir } = configPathDetails(config);
     const { output = 'dist', transforms } = await import(config);
     const destination = `${curdir}/${output}/${outputdir}`;
