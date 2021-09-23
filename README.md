@@ -5,8 +5,9 @@ A tiny util for building apps and libraries from configs
 
 ## `_config.js`
 
+This is the powerhouse of the build script. It will take all files provided and either copy them to the destination, or run it through a custom transpiler. 
 
-### `_config.js` example
+### Example
 
 ```js
 import { rollup } from 'rollup';
