@@ -1,7 +1,8 @@
-import { copyFile, mkdir, readFile, readdirSync, statSync } from 'fs';
+import { copyFile, mkdir, readFile, readdir, stat } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { chdir, cwd } from 'process';
+import { promisify } from 'util';
 
 import chokidar from 'chokidar';
 import debounce from 'lodash-es/debounce.js';
@@ -12,7 +13,10 @@ async function build(eventType, filename) {
   const curdir = cwd();
   const savedFile = `${curdir}/${filename}`;
 
-  for (const config of findFilesRecursively('_config.js', `${curdir}/src`)) {
+  for await (const config of findFilesRecursively(
+    '_config.js',
+    `${curdir}/src`
+  )) {
     const { inputdir, outputdir } = configPathDetails(config);
     const { output = 'dist', transforms } = await import(config);
     const destination = `${curdir}/${output}/${outputdir}`;
@@ -41,10 +45,10 @@ async function build(eventType, filename) {
   }
 }
 
-function* findFilesRecursively(name, dir) {
-  for (const file of readdirSync(dir)) {
+async function* findFilesRecursively(name, dir) {
+  for await (const file of await promisify(readdir)(dir)) {
     const path = join(dir, file);
-    if (statSync(path).isDirectory()) {
+    if ((await promisify(stat)(path)).isDirectory()) {
       yield* findFilesRecursively(name, path);
     } else {
       if (file.includes(name)) {
