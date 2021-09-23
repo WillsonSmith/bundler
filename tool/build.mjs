@@ -62,7 +62,6 @@ function* findFilesRecursively(name, dir) {
 function configPathDetails(path) {
   const pathParts = path.split('/');
   const name = pathParts.pop();
-  // console.log(pathParts.slice(0, pathParts.length - 1));
   const inputdir = pathParts.join('/');
   let outputdir = pathParts.slice(
     pathParts.indexOf('src') + 1,
