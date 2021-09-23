@@ -10,6 +10,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function build(eventType, filename) {
   const curdir = cwd();
+  const savedFile = `${curdir}/${filename}`;
+
   for (const config of findFilesRecursively('_config.js', `${curdir}/src`)) {
     const { inputdir, outputdir } = configPathDetails(config);
     const { output = 'dist', transforms } = await import(config);
@@ -19,21 +21,21 @@ async function build(eventType, filename) {
     for (const transform of transforms) {
       const [src, dest = src, transpiler] = transform;
       const sourceFile = `${inputdir}/${src}`;
-      const savedFile = `${curdir}/${filename}`;
 
       if (sourceFile === savedFile) {
         const outputFile = `${destination}${dest}`;
         const outputDir = dirname(outputFile);
 
-        mkdir(outputDir, { recursive: true }, (err) => {});
-        console.log(`transpiling ${sourceFile} to ${outputFile}`);
-        if (transpiler) {
-          readFile(sourceFile, (error, data) => {
-            transpiler(sourceFile, data.toString('utf8'), outputFile);
-          });
-        } else {
-          copyFile(sourceFile, outputFile, (err) => {});
-        }
+        mkdir(outputDir, { recursive: true }, (err) => {
+          console.log(`transpiling ${sourceFile} to ${outputFile}`);
+          if (transpiler) {
+            readFile(sourceFile, (error, data) => {
+              transpiler(sourceFile, data.toString('utf8'), outputFile);
+            });
+          } else {
+            copyFile(sourceFile, outputFile, (err) => {});
+          }
+        });
       }
     }
   }

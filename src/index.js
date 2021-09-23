@@ -1,1 +1,4 @@
-console.log('index');
+function i() {
+  return 'index';
+}
+console.log(i());
