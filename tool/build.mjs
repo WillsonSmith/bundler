@@ -1,73 +1,73 @@
-import chokidar from 'chokidar';
-import { copyFile, readFile, watch, mkdir } from 'fs';
-import { chdir, cwd } from 'process';
-import debounce from 'lodash-es/debounce.js';
-
-import { dirname } from 'path';
+import { copyFile, mkdir, readFile, readdirSync, statSync } from 'fs';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { chdir, cwd } from 'process';
 
-import { readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import chokidar from 'chokidar';
+import debounce from 'lodash-es/debounce.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const debouncedEvent = debounce((eventType, filename) => {
+async function build(eventType, filename) {
   const curdir = cwd();
-  const configs = recursive(`${curdir}/src`).filter((file) => {
-    return file.includes('_config.js');
-  });
+  for (const config of findFilesRecursively('_config.js', `${curdir}/src`)) {
+    const { inputdir, outputdir } = configPathDetails(config);
+    const { output = 'dist', transforms } = await import(config);
+    const destination = `${curdir}/${output}/${outputdir}`;
 
-  for (const config of configs) {
-    const path = config.split('/');
-    let inputdir = config.split('/');
-    inputdir.pop();
-    inputdir = inputdir.join('/');
+    if (!transforms) return;
+    for (const transform of transforms) {
+      const [src, dest = src, transpiler] = transform;
+      const sourceFile = `${inputdir}/${src}`;
+      const savedFile = `${curdir}/${filename}`;
 
-    const explodedPath = path.slice(path.indexOf('src') + 1, path.length - 1);
-    let outputDir = explodedPath.join('/');
-    if (explodedPath.length > 0) outputDir = `${outputDir}/`;
+      if (sourceFile === savedFile) {
+        const outputFile = `${destination}${dest}`;
+        const outputDir = dirname(outputFile);
 
-    import(config).then(({ output = 'dist', transforms }) => {
-      const destination = `${curdir}/${output}/${outputDir}`;
-      if (!transforms) return;
-
-      for (const transform of transforms) {
-        const [src, dest = src, transpiler] = transform;
-        const inputFile = `${inputdir}/${src}`;
-        const fileName = `${curdir}/${filename}`;
-
-        if (inputFile === fileName) {
-          const outputFile = `${destination}${dest}`;
-          const outputDir = dirname(outputFile);
-
-          mkdir(outputDir, { recursive: true }, (err) => {});
-          console.log(`transpiling ${inputFile} to ${outputFile}`);
-          if (transpiler) {
-            readFile(inputFile, (error, data) => {
-              transpiler(inputFile, data.toString('utf8'), outputFile);
-            });
-          } else {
-            copyFile(inputFile, outputFile, (err) => {});
-          }
+        mkdir(outputDir, { recursive: true }, (err) => {});
+        console.log(`transpiling ${sourceFile} to ${outputFile}`);
+        if (transpiler) {
+          readFile(sourceFile, (error, data) => {
+            transpiler(sourceFile, data.toString('utf8'), outputFile);
+          });
+        } else {
+          copyFile(sourceFile, outputFile, (err) => {});
         }
       }
-    });
-  }
-}, 20);
-
-chdir(`${__dirname}/../`);
-debouncedEvent();
-chokidar.watch('./src').on('all', debouncedEvent);
-
-function recursive(dir, filelist = []) {
-  const files = readdirSync(dir);
-  for (const file of files) {
-    const path = join(dir, file);
-    if (statSync(path).isDirectory()) {
-      filelist = recursive(path, filelist);
-    } else {
-      filelist.push(path);
     }
   }
-  return filelist;
+}
+
+const debouncedBuild = debounce(build, 20);
+
+chdir(`${__dirname}/../`);
+build();
+
+chokidar.watch('./src').on('all', debouncedBuild);
+
+function* findFilesRecursively(name, dir) {
+  for (const file of readdirSync(dir)) {
+    const path = join(dir, file);
+    if (statSync(path).isDirectory()) {
+      yield* findFilesRecursively(name, path);
+    } else {
+      if (file.includes(name)) {
+        yield path;
+      }
+    }
+  }
+}
+
+function configPathDetails(path) {
+  const pathParts = path.split('/');
+  const name = pathParts.pop();
+  const inputdir = pathParts.join('/');
+  let outputdir = pathParts.slice(
+    pathParts.indexOf('src') + 1,
+    pathParts.length
+  );
+  outputdir = outputdir.join('/');
+  if (outputdir.length > 0) outputdir = `${outputdir}/`;
+  return { name, inputdir, outputdir };
 }
