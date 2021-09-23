@@ -11,13 +11,9 @@ import { join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const debouncedEvent = debounce((eventType, filename) => {
+function build(eventType, filename) {
   const curdir = cwd();
-  const configs = recursive(`${curdir}/src`).filter((file) => {
-    return file.includes('_config.js');
-  });
-
-  for (const config of configs) {
+  for (const config of findFilesRecursively('_config.js', `${curdir}/src`)) {
     const path = config.split('/');
     let inputdir = config.split('/');
     inputdir.pop();
@@ -35,7 +31,6 @@ const debouncedEvent = debounce((eventType, filename) => {
         const [src, dest = src, transpiler] = transform;
         const inputFile = `${inputdir}/${src}`;
         const fileName = `${curdir}/${filename}`;
-
         if (inputFile === fileName) {
           const outputFile = `${destination}${dest}`;
           const outputDir = dirname(outputFile);
@@ -53,21 +48,24 @@ const debouncedEvent = debounce((eventType, filename) => {
       }
     });
   }
-}, 20);
+}
+
+const debouncedBuild = debounce(build, 20);
 
 chdir(`${__dirname}/../`);
-debouncedEvent();
-chokidar.watch('./src').on('all', debouncedEvent);
+build();
 
-function recursive(dir, filelist = []) {
-  const files = readdirSync(dir);
-  for (const file of files) {
+chokidar.watch('./src').on('all', debouncedBuild);
+
+function* findFilesRecursively(name, dir) {
+  for (const file of readdirSync(dir)) {
     const path = join(dir, file);
     if (statSync(path).isDirectory()) {
-      filelist = recursive(path, filelist);
+      yield* findFilesRecursively(name, path);
     } else {
-      filelist.push(path);
+      if (file.includes(name)) {
+        yield path;
+      }
     }
   }
-  return filelist;
 }
