@@ -11,42 +11,34 @@ import { join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-function build(eventType, filename) {
+async function build(eventType, filename) {
   const curdir = cwd();
   for (const config of findFilesRecursively('_config.js', `${curdir}/src`)) {
-    const path = config.split('/');
-    let inputdir = config.split('/');
-    inputdir.pop();
-    inputdir = inputdir.join('/');
+    const { inputdir, outputdir } = configPathDetails(config);
+    const { output = 'dist', transforms } = await import(config);
+    const destination = `${curdir}/${output}/${outputdir}`;
 
-    const explodedPath = path.slice(path.indexOf('src') + 1, path.length - 1);
-    let outputDir = explodedPath.join('/');
-    if (explodedPath.length > 0) outputDir = `${outputDir}/`;
+    if (!transforms) return;
+    for (const transform of transforms) {
+      const [src, dest = src, transpiler] = transform;
+      const sourceFile = `${inputdir}/${src}`;
+      const savedFile = `${curdir}/${filename}`;
 
-    import(config).then(({ output = 'dist', transforms }) => {
-      const destination = `${curdir}/${output}/${outputDir}`;
-      if (!transforms) return;
+      if (sourceFile === savedFile) {
+        const outputFile = `${destination}${dest}`;
+        const outputDir = dirname(outputFile);
 
-      for (const transform of transforms) {
-        const [src, dest = src, transpiler] = transform;
-        const inputFile = `${inputdir}/${src}`;
-        const fileName = `${curdir}/${filename}`;
-        if (inputFile === fileName) {
-          const outputFile = `${destination}${dest}`;
-          const outputDir = dirname(outputFile);
-
-          mkdir(outputDir, { recursive: true }, (err) => {});
-          console.log(`transpiling ${inputFile} to ${outputFile}`);
-          if (transpiler) {
-            readFile(inputFile, (error, data) => {
-              transpiler(inputFile, data.toString('utf8'), outputFile);
-            });
-          } else {
-            copyFile(inputFile, outputFile, (err) => {});
-          }
+        mkdir(outputDir, { recursive: true }, (err) => {});
+        console.log(`transpiling ${sourceFile} to ${outputFile}`);
+        if (transpiler) {
+          readFile(sourceFile, (error, data) => {
+            transpiler(sourceFile, data.toString('utf8'), outputFile);
+          });
+        } else {
+          copyFile(sourceFile, outputFile, (err) => {});
         }
       }
-    });
+    }
   }
 }
 
@@ -68,4 +60,18 @@ function* findFilesRecursively(name, dir) {
       }
     }
   }
+}
+
+function configPathDetails(path) {
+  const pathParts = path.split('/');
+  const name = pathParts.pop();
+  // console.log(pathParts.slice(0, pathParts.length - 1));
+  const inputdir = pathParts.join('/');
+  let outputdir = pathParts.slice(
+    pathParts.indexOf('src') + 1,
+    pathParts.length
+  );
+  outputdir = outputdir.join('/');
+  if (outputdir.length > 0) outputdir = `${outputdir}/`;
+  return { name, inputdir, outputdir };
 }
