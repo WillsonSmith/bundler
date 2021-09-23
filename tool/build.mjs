@@ -1,13 +1,10 @@
-import chokidar from 'chokidar';
-import { copyFile, readFile, watch, mkdir } from 'fs';
-import { chdir, cwd } from 'process';
-import debounce from 'lodash-es/debounce.js';
-
-import { dirname } from 'path';
+import { copyFile, mkdir, readFile, readdirSync, statSync } from 'fs';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { chdir, cwd } from 'process';
 
-import { readdirSync, statSync } from 'fs';
-import { join } from 'path';
+import chokidar from 'chokidar';
+import debounce from 'lodash-es/debounce.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
