@@ -15,12 +15,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "lodash-es": "^4.17.21",
     "rollup": "^2.56.3"
   },
   "dependencies": {
     "chokidar": "^3.5.2",
     "handlebars": "^4.7.7",
+    "lodash-es": "^4.17.21",
     "yargs": "^17.2.0"
   }
 }
