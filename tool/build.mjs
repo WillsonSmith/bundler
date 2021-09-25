@@ -9,22 +9,23 @@ import debounce from 'lodash-es/debounce.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-async function build(eventType, filename) {
+export async function build({ filename, input = 'src', output = 'dist' }) {
+  chdir(`${__dirname}/../`);
   const curdir = cwd();
   const savedFile = `${curdir}/${filename}`;
-  const configs = findFilesRecursively('_config.js', `${curdir}/src`);
+  const configs = findFilesRecursively('_config.js', `${curdir}/${input}`);
 
   for await (const config of configs) {
     const { inputdir, outputdir } = configPathDetails(config);
-    const { output = 'dist', transforms } = await import(config);
-    const destination = `${curdir}/${output}/${outputdir}`;
+    const { output: configOutput = output, transforms } = await import(config);
+    const destination = `${curdir}/${configOutput}/${outputdir}`;
     if (!transforms) return;
 
     for (const transform of transforms) {
       const [src, dest = src, transpiler] = transform;
       const sourceFile = `${inputdir}/${src}`;
 
-      if (sourceFile === savedFile) {
+      if (sourceFile === savedFile || !filename) {
         const outputFile = `${destination}${dest}`;
         const outputDir = dirname(outputFile);
         await promisify(mkdir)(outputDir, { recursive: true });
@@ -68,7 +69,9 @@ function configPathDetails(path) {
   return { name, inputdir, outputdir };
 }
 
-chdir(`${__dirname}/../`);
-
-build();
-chokidar.watch('./src').on('all', debounce(build, 20));
+export function watch(input, output) {
+  chokidar.watch(input).on(
+    'all',
+    debounce((_, filename) => build({ filename, input, output }), 20)
+  );
+}
