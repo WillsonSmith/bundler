@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "description": "",
   "type": "module",
-  "main": "index.mjs",
+  "main": "tool/cli.mjs",
+  "bin": {
+    "bundler": "tool/cli.mjs"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node ./tool/cli.mjs --build --input src --output dist",
