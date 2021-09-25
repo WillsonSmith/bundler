@@ -8,10 +8,10 @@ const { source = 'src', target = 'dist', watch, build } = argv;
 (() => {
   if (build) {
     console.log('Building...');
-    return builder(source || 'src', target || 'dist');
+    return builder(source, target);
   }
   if (watch) {
     console.log('Watching...');
-    watcher(source || 'src', target || 'dist');
+    watcher(source, target);
   }
 })();
