@@ -10,7 +10,6 @@ import debounce from 'lodash-es/debounce.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export async function build({ filename, input = 'src', output = 'dist' }) {
-  chdir(`${__dirname}/../`);
   const curdir = cwd();
   const savedFile = `${curdir}/${filename}`;
   const configs = findFilesRecursively('_config.js', `${curdir}/${input}`);
