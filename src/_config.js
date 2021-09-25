@@ -1,7 +1,6 @@
 import { rollup } from 'rollup';
 
 async function useRollup(file, _, dest) {
-  console.log(file, dest);
   try {
     const bundle = await rollup({
       input: file,
