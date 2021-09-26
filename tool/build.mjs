@@ -13,7 +13,9 @@ export async function build({ filename, input = 'src', output = 'dist' }) {
   const curdir = cwd();
   const savedFile = `${curdir}/${filename}`;
   const configs = findFilesRecursively('_config', `${curdir}/${input}`);
-
+  for (const config of configs) {
+    console.log(`Loading config: ${config}`);
+  }
   for await (const config of configs) {
     const { inputdir, outputdir } = configPathDetails(config);
     const { output: configOutput = output, transforms } = await import(config);
